@@ -1,4 +1,4 @@
-# Copyright (c) 2024-2026 Kilotronic LLC.
+# Copyright (c) 2026 Kilotronic LLC.
 # SPDX-License-Identifier: MIT
 """Tests for the vendored-license-check gate, exercised via tmp_path fixtures."""
 

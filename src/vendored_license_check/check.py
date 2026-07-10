@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (c) 2024-2026 Kilotronic LLC.
+# Copyright (c) 2026 Kilotronic LLC.
 # SPDX-License-Identifier: MIT
 """Gate a repository on vendored (committed) third-party asset license policy.
 
