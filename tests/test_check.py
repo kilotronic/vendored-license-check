@@ -131,9 +131,13 @@ license = "OFL-1.1"
     assert errors == [], errors
 
 
-def test_license_and_readme_prefixes_are_meta(tmp_path: Path) -> None:
+def test_legal_and_doc_files_are_meta(tmp_path: Path) -> None:
+    """LICENSE/README/COPYING/NOTICE, a font's OFL.txt, and *.md need no entry."""
     _vendored(tmp_path, "vendor/LICENSE-MIT")
     _vendored(tmp_path, "vendor/README-fonts")
+    _vendored(tmp_path, "vendor/OFL.txt")
+    _vendored(tmp_path, "vendor/COPYING")
+    _vendored(tmp_path, "vendor/NOTICE")
     _vendored(tmp_path, "vendor/notes.md")
     _vendored(tmp_path, "vendor/qrcode-generator.js")
     manifest = _manifest(
