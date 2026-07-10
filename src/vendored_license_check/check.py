@@ -48,7 +48,10 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
     "Python-2.0",
 )
 
-# Meta/legal files are not third-party assets, so they need no manifest entry.
+# Legal/attribution files that ship beside vendored assets — a font's OFL.txt, a
+# bundled LICENSE/NOTICE/COPYING, a README — are not themselves third-party
+# assets, so they need no manifest entry.
+_META_NAME_PREFIXES = ("LICENSE", "LICENCE", "COPYING", "NOTICE", "OFL", "README")
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
 
 
@@ -74,9 +77,9 @@ def _is_meta_file(path: Path) -> bool:
     name = path.name
     if name.startswith("."):
         return True
-    if name.startswith("LICENSE") or name.startswith("README"):
+    if path.suffix in _SKIP_SUFFIXES:
         return True
-    return path.suffix in _SKIP_SUFFIXES
+    return name.upper().startswith(_META_NAME_PREFIXES)
 
 
 def enumerate_vendored(root: Path, roots: list[str]) -> list[Path]:
