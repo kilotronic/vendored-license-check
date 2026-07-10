@@ -32,9 +32,8 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# SPDX identifiers permitted by default. Copyleft (GPL/LGPL/AGPL) is absent by
-# design — the gate blocks any entry not on the allow-list. Override with
-# ``--allow`` or a manifest ``[config].allow`` list.
+# Copyleft (GPL/LGPL/AGPL) is deliberately excluded so the gate rejects it
+# unless a caller explicitly widens the policy via --allow / [config].allow.
 DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
     "MIT",
     "Apache-2.0",
@@ -49,8 +48,7 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
     "Python-2.0",
 )
 
-# Files within vendored roots that are meta/legal, not third-party assets, and so
-# do not require a manifest entry: dotfiles, LICENSE*/README* files, and docs.
+# Meta/legal files are not third-party assets, so they need no manifest entry.
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
 
 
@@ -74,7 +72,7 @@ def load_manifest(manifest_path: Path) -> dict:
 def _is_meta_file(path: Path) -> bool:
     """Return True for attribution/legal files that need no manifest entry."""
     name = path.name
-    if name.startswith("."):  # dotfiles
+    if name.startswith("."):
         return True
     if name.startswith("LICENSE") or name.startswith("README"):
         return True
