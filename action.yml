@@ -33,7 +33,13 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v5
+    # Best-effort: guarantees 3.11+ on GitHub-hosted runners. On runners where
+    # setup-python can't provision a build (e.g. self-hosted Debian images that
+    # aren't in the version manifest), this is skipped and the next step uses the
+    # runner's own python3 (which must be 3.11+ for stdlib tomllib).
+    - name: Set up Python
+      continue-on-error: true
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ inputs.python-version }}
     - name: Run vendored-license-check
@@ -41,7 +47,7 @@ runs:
       # Empty string inputs are safe: the gate treats them as "unset" and falls
       # back to the manifest [config] table, then built-in defaults.
       run: |
-        python "$GITHUB_ACTION_PATH/src/vendored_license_check/check.py" \
+        python3 "$GITHUB_ACTION_PATH/src/vendored_license_check/check.py" \
           --root-dir "${{ inputs.root-dir }}" \
           --manifest "${{ inputs.manifest }}" \
           --root "${{ inputs.roots }}" \
