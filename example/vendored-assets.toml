@@ -1,0 +1,21 @@
+# Example manifest — also dogfooded by CI (see .github/workflows/ci.yml).
+# The [config] table lets `vendored-license-check` run with no CLI flags.
+
+[config]
+roots = ["vendor"]
+# allow / deny omitted → built-in permissive allow-list, empty deny-list.
+
+[[asset]]
+path = "vendor/example-lib.js"
+name = "example-lib"
+version = "1.0.0"
+license = "MIT"
+url = "https://example.com/example-lib"
+
+[[asset]]
+# A glob entry with zero current matches is valid (forward declaration).
+path = "vendor/fonts/*.woff2"
+name = "Example Font"
+version = "as bundled"
+license = "OFL-1.1"
+url = "https://example.com/example-font"

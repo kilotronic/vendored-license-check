@@ -1,0 +1,10 @@
+- id: vendored-license-check
+  name: Vendored asset license compliance
+  description: Enforce that every vendored asset file is declared with an allow-listed SPDX license.
+  entry: vendored-license-check
+  language: python
+  pass_filenames: false
+  # The gate walks the configured roots itself, so it does not consume the
+  # changed-file list. Scope *when* it runs by setting `files:` in your own
+  # .pre-commit-config.yaml, e.g.:
+  #   files: '^(vendor/.*|assets/fonts/.*|vendored-assets\.toml)$'
