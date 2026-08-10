@@ -69,7 +69,8 @@ In your `.pre-commit-config.yaml`:
 ```yaml
 repos:
   - repo: https://github.com/kilotronic/vendored-license-check
-    rev: v0.1.0
+    # Pin a dotted release tag (v1.0.0), not the floating Action major tag (v1).
+    rev: v1.0.0
     hooks:
       - id: vendored-license-check
         # Optional: only run when vendored files or the manifest change.
