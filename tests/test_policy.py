@@ -200,6 +200,11 @@ def test_action_uses_the_manifest_input(tmp_path: Path) -> None:
         "LICENSE.WOFF2.TXT",
         "README.tsx",
         "OFL.ttc",
+        "LICENSE-MIT.PY",
+        "OFL-1.1.EXE",
+        "README-X.SH",
+        "LICENSE_A.DLL",
+        "LICENSE-MIT.TXT.EXE",
     ],
 )
 def test_a_library_named_like_a_legal_file_still_needs_an_entry(
