@@ -53,6 +53,8 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
 # assets, so they need no manifest entry.
 _META_NAME_PREFIXES = ("LICENSE", "LICENCE", "COPYING", "NOTICE", "OFL", "README")
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
+# Extensions a legal or readme file may carry after its name (LICENSE.txt, OFL-1.1.txt).
+_TEXT_SUFFIXES = frozenset({".txt", ".md", ".rst", ".html", ".htm"})
 
 
 @dataclass(frozen=True)
@@ -79,7 +81,24 @@ def _is_meta_file(path: Path) -> bool:
         return True
     if path.suffix in _SKIP_SUFFIXES:
         return True
-    return name.upper().startswith(_META_NAME_PREFIXES)
+    # The whole name, or the name followed by "-", "_" or "." and a qualifier: LICENSE,
+    # LICENSE-MIT, COPYING.LESSER, OFL-1.1.txt. A library that only starts with the word
+    # (readme-viewer.js, licensed-widget.js, notice.js) is an asset like any other.
+    for prefix in _META_NAME_PREFIXES:
+        if not name.upper().startswith(prefix):
+            continue
+        rest = name[len(prefix) :]
+        if not rest:
+            return True
+        if rest[0] not in "-_.":
+            continue
+        if path.suffix.lower() in _TEXT_SUFFIXES:
+            return True
+        qualifier = rest[1:]
+        # No extension of its own (LICENSE-MIT, README-fonts) or an all-caps one (COPYING.LESSER).
+        if "." not in qualifier and (rest[0] != "." or qualifier.isupper()):
+            return True
+    return False
 
 
 def enumerate_vendored(root: Path, roots: list[str]) -> list[Path]:
@@ -259,7 +278,13 @@ def main(argv: list[str] | None = None) -> int:
         print(attributions_csv(manifest_path))
         return 0
 
-    cfg = resolve_config(args)
+    try:
+        cfg = resolve_config(args)
+    except (OSError, tomllib.TOMLDecodeError) as err:
+        print(
+            f"vendored-license-check: cannot read the manifest: {err}", file=sys.stderr
+        )
+        return 2
     if not cfg.roots:
         print(
             "vendored-license-check: no vendored roots configured. Pass --root or "
