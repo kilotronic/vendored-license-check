@@ -5,4 +5,4 @@
 from vendored_license_check.check import Config, attributions_csv, check, main
 
 __all__ = ["Config", "attributions_csv", "check", "main"]
-__version__ = "1.0.1"
+__version__ = "1.1.0"
