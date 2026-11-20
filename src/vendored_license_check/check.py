@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import re
 import sys
 import tomllib
 from dataclasses import dataclass, field
@@ -51,10 +52,42 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
 # Legal/attribution files that ship beside vendored assets — a font's OFL.txt, a
 # bundled LICENSE/NOTICE/COPYING, a README — are not themselves third-party
 # assets, so they need no manifest entry.
-_META_NAME_PREFIXES = ("LICENSE", "LICENCE", "COPYING", "NOTICE", "OFL", "README")
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
-# Extensions a legal or readme file may carry after its name (LICENSE.txt, OFL-1.1.txt).
-_TEXT_SUFFIXES = frozenset({".txt", ".md", ".rst", ".html", ".htm"})
+# A legal or readme file: the word (any case), an optional upper-case qualifier after "-", "_"
+# or "." (LICENSE-MIT, COPYING.LESSER, OFL-1.1, LICENSE-APACHE-2.0), and an optional document
+# extension (LICENSE.txt, README.markdown, LICENSE.pdf).
+_META_NAME_RE = re.compile(
+    r"(?i:LICENSE|LICENCE|COPYING|NOTICE|OFL|README)"
+    r"(?:[-_.][A-Z0-9][A-Z0-9.+-]*)?"
+    r"(?i:\.(?:txt|md|markdown|rst|pdf|rtf))?"
+)
+# Never a legal file, whatever the name: code, styles, fonts, images, pages.
+_ASSET_SUFFIXES = frozenset(
+    {
+        ".js",
+        ".mjs",
+        ".cjs",
+        ".ts",
+        ".css",
+        ".map",
+        ".json",
+        ".wasm",
+        ".html",
+        ".htm",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".otf",
+        ".eot",
+        ".svg",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".ico",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -81,24 +114,9 @@ def _is_meta_file(path: Path) -> bool:
         return True
     if path.suffix in _SKIP_SUFFIXES:
         return True
-    # The whole name, or the name followed by "-", "_" or "." and a qualifier: LICENSE,
-    # LICENSE-MIT, COPYING.LESSER, OFL-1.1.txt. A library that only starts with the word
-    # (readme-viewer.js, licensed-widget.js, notice.js) is an asset like any other.
-    for prefix in _META_NAME_PREFIXES:
-        if not name.upper().startswith(prefix):
-            continue
-        rest = name[len(prefix) :]
-        if not rest:
-            return True
-        if rest[0] not in "-_.":
-            continue
-        if path.suffix.lower() in _TEXT_SUFFIXES:
-            return True
-        qualifier = rest[1:]
-        # No extension of its own (LICENSE-MIT, README-fonts) or an all-caps one (COPYING.LESSER).
-        if "." not in qualifier and (rest[0] != "." or qualifier.isupper()):
-            return True
-    return False
+    if path.suffix.lower() in _ASSET_SUFFIXES:
+        return False
+    return _META_NAME_RE.fullmatch(name) is not None
 
 
 def enumerate_vendored(root: Path, roots: list[str]) -> list[Path]:
@@ -275,12 +293,19 @@ def main(argv: list[str] | None = None) -> int:
             if Path(args.manifest).is_absolute()
             else root / args.manifest
         )
-        print(attributions_csv(manifest_path))
+        try:
+            print(attributions_csv(manifest_path))
+        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as err:
+            print(
+                f"vendored-license-check: cannot read the manifest: {err}",
+                file=sys.stderr,
+            )
+            return 2
         return 0
 
     try:
         cfg = resolve_config(args)
-    except (OSError, tomllib.TOMLDecodeError) as err:
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as err:
         print(
             f"vendored-license-check: cannot read the manifest: {err}", file=sys.stderr
         )

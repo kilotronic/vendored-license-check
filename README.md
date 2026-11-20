@@ -58,11 +58,13 @@ url = "https://github.com/Outfitio/Outfit-Fonts"
 
 - A **glob with zero current matches is valid** (forward-declare a font family you
   haven't added yet).
-- Meta files are ignored automatically: dotfiles, `*.md`, and legal or readme files named
-  `LICENSE`, `LICENCE`, `COPYING`, `NOTICE`, `OFL` or `README`, alone or with a qualifier
-  (`LICENSE-MIT`, `LICENSE.txt`, `COPYING.LESSER`, `OFL-1.1.txt`, `README-fonts`). A library
-  whose name merely starts with one of those words, such as `readme-viewer.js` or
-  `licensed-widget.js`, still needs an entry.
+- Meta files are ignored automatically: dotfiles, `*.md`, and legal or readme files. Those are
+  named `LICENSE`, `LICENCE`, `COPYING`, `NOTICE`, `OFL` or `README` (any case), optionally
+  with an upper-case qualifier after `-`, `_` or `.` (`LICENSE-MIT`, `COPYING.LESSER`,
+  `OFL-1.1`) and a document extension: `.txt`, `.markdown`, `.rst`, `.pdf` or `.rtf`.
+  Anything else needs an entry, including a library whose name merely starts with one of
+  those words (`readme-viewer.js`, `license-checker`, `notice-banner.html`) and a legal file
+  with a lower-case qualifier (`COPYING.lib`, `README-fonts`).
 - If `[config]` is omitted, pass `--root`/`--allow`/`--deny` on the CLI or via the
   Action inputs instead.
 

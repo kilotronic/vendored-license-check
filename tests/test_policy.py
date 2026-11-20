@@ -183,6 +183,15 @@ def test_action_uses_the_manifest_input(tmp_path: Path) -> None:
         "OFLine.woff2",
         "copying-helper.js",
         "Readme.js",
+        "readme-viewer.html",
+        "notice-banner.htm",
+        "license-checker",
+        "copying-tool",
+        "readme_widget",
+        "README-fonts",
+        "OFL.WOFF2",
+        "README.JS",
+        "COPYING.lib",
     ],
 )
 def test_a_library_named_like_a_legal_file_still_needs_an_entry(
@@ -208,8 +217,13 @@ def test_a_library_named_like_a_legal_file_still_needs_an_entry(
         "OFL.txt",
         "OFL-1.1.txt",
         "README",
-        "README-fonts",
+        "README-FONTS",
         "README.rst",
+        "README.markdown",
+        "LICENSE.pdf",
+        "LICENSE.rtf",
+        "LICENSE-APACHE-2.0",
+        "OFL-1.1",
     ],
 )
 def test_a_legal_or_readme_file_needs_no_entry(tmp_path: Path, name: str) -> None:
@@ -225,4 +239,13 @@ def test_a_missing_manifest_is_a_configuration_error(tmp_path: Path, capsys) -> 
 
 def test_a_manifest_that_is_not_toml_is_a_configuration_error(tmp_path: Path) -> None:
     (tmp_path / "vendored-assets.toml").write_text("[[asset\n", encoding="utf-8")
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2
+
+
+def test_attributions_without_a_manifest_is_a_configuration_error(tmp_path: Path) -> None:
+    assert main(["--root-dir", str(tmp_path), "--attributions"]) == 2
+
+
+def test_a_manifest_that_is_not_utf8_is_a_configuration_error(tmp_path: Path) -> None:
+    (tmp_path / "vendored-assets.toml").write_bytes(b"\xff\xfe[config]\n")
     assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2
