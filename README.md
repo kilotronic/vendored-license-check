@@ -70,7 +70,7 @@ Works with [prek](https://github.com/j178/prek) and [pre-commit](https://pre-com
 ```yaml
 repos:
   - repo: https://github.com/kilotronic/vendored-license-check
-    rev: v1.1.0  # `prek autoupdate --freeze` pins the commit SHA
+    rev: c6c0673f419d7ff89ff75bc4e86708278ded490d  # v1.1.0
     hooks:
       - id: vendored-license-check
         # Optional: only run when vendored files or the manifest change.
