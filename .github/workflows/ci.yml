@@ -18,6 +18,37 @@ jobs:
         with:
           denylist: ${{ secrets.DATA_LEAK_DENYLIST }}
 
+  # Secrets in this event's commits: gitleaks (anything shaped like a secret) and trufflehog (keys that still
+  # work), from kilotronic/secret-scan.
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: kilotronic/secret-scan@006556b813fd5054d7da8575d3928c5ad3583535 # v1.1.0
+
+  # Shell scripts (shellcheck), workflows (actionlint), and actions and base images pinned by commit and
+  # digest, from kilotronic/lint.
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: kilotronic/lint@50d58c6fc3916432a60d6caf5914d5bb83a60a16 # v1.1.0
+
+  # Real authors on this event's commits, in the owner's domains, from kilotronic/git-identity.
+  git-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: kilotronic/git-identity@76223f8d531904185d4bd46f66c65849cf0133f7 # v2.2.0
+        with:
+          domains: ixid.net, kilotronic.com
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -72,16 +103,19 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [test, dogfood-action, prek-hook, data-leak-check]
+    needs: [test, dogfood-action, prek-hook, secret-scan, lint, git-identity, data-leak-check]
     if: always()
     steps:
       - name: Verify required jobs succeeded
         run: |
           if [ "${{ needs.test.result }}" != "success" ] \
+             || [ "${{ needs.secret-scan.result }}" != "success" ] \
+             || [ "${{ needs.lint.result }}" != "success" ] \
+             || [ "${{ needs.git-identity.result }}" != "success" ] \
              || [ "${{ needs.dogfood-action.result }}" != "success" ] \
              || [ "${{ needs.prek-hook.result }}" != "success" ] \
              || [ "${{ needs.data-leak-check.result }}" != "success" ]; then
-            echo "A required job did not succeed (test=${{ needs.test.result }}, dogfood-action=${{ needs.dogfood-action.result }}, prek-hook=${{ needs.prek-hook.result }}, data-leak-check=${{ needs.data-leak-check.result }})"
+            echo "A required job did not succeed (test=${{ needs.test.result }}, secret-scan=${{ needs.secret-scan.result }}, lint=${{ needs.lint.result }}, git-identity=${{ needs.git-identity.result }}, dogfood-action=${{ needs.dogfood-action.result }}, prek-hook=${{ needs.prek-hook.result }}, data-leak-check=${{ needs.data-leak-check.result }})"
             exit 1
           fi
           echo "All required jobs succeeded."
