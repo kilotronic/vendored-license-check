@@ -62,23 +62,24 @@ url = "https://github.com/Outfitio/Outfit-Fonts"
 - If `[config]` is omitted, pass `--root`/`--allow`/`--deny` on the CLI or via the
   Action inputs instead.
 
-## Use as a pre-commit hook
+## Use as a pre-commit or prek hook
 
-In your `.pre-commit-config.yaml`:
+Works with [prek](https://github.com/j178/prek) and [pre-commit](https://pre-commit.com). In your
+`.pre-commit-config.yaml`:
 
 ```yaml
 repos:
   - repo: https://github.com/kilotronic/vendored-license-check
-    # Pin a dotted release tag (v1.0.1), not the floating Action major tag (v1).
-    rev: v1.0.1
+    rev: v1.1.0  # `prek autoupdate --freeze` pins the commit SHA
     hooks:
       - id: vendored-license-check
         # Optional: only run when vendored files or the manifest change.
         files: '^(ui/vendor/.*|assets/fonts/.*|vendored-assets\.toml)$'
 ```
 
-The hook walks the roots itself (`pass_filenames: false`); the `files:` filter just
-controls _when_ it runs.
+The hook id is `vendored-license-check`, at the `pre-commit` stage (also `pre-merge-commit` and
+`manual`). It is a stdlib-only Python package, which prek installs with uv. The hook walks the roots
+itself (`pass_filenames: false`); the `files:` filter just controls _when_ it runs.
 
 ## Use as a GitHub Action
 

@@ -4,6 +4,7 @@
   entry: vendored-license-check
   language: python
   pass_filenames: false
+  stages: [pre-commit, pre-merge-commit, manual]
   # The gate walks the configured roots itself, so it does not consume the
   # changed-file list. Scope *when* it runs by setting `files:` in your own
   # .pre-commit-config.yaml, e.g.:
