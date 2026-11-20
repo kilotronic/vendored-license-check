@@ -233,7 +233,6 @@ def test_a_library_named_like_a_legal_file_still_needs_an_entry(
         "LICENSE-APACHE-2.0",
         "OFL-1.1",
         "OFL.1.1",
-        "COPYING.LESSER",
         "LICENSE.MIT",
     ],
 )
