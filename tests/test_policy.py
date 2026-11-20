@@ -139,26 +139,131 @@ def test_action_passes_a_clean_tree(tmp_path: Path) -> None:
 
 def test_action_refuses_an_undeclared_file(tmp_path: Path) -> None:
     _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js", "vendor/b.js")
-    assert _action(tmp_path, roots="vendor").returncode == 1
+    run = _action(tmp_path, roots="vendor")
+    assert run.returncode == 1
+    assert "vendored-license-check: FAILED" in run.stderr
 
 
 def test_action_passes_the_allow_input(tmp_path: Path) -> None:
     _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js")
-    assert _action(tmp_path, roots="vendor", allow="ISC").returncode == 1
+    run = _action(tmp_path, roots="vendor", allow="ISC")
+    assert run.returncode == 1
+    assert "vendored-license-check: FAILED" in run.stderr
 
 
 def test_action_passes_the_deny_input(tmp_path: Path) -> None:
     _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js")
-    assert _action(tmp_path, roots="vendor", deny="MIT").returncode == 1
+    run = _action(tmp_path, roots="vendor", deny="MIT")
+    assert run.returncode == 1
+    assert "vendored-license-check: FAILED" in run.stderr
 
 
 def test_action_reads_the_manifest_config_when_inputs_are_empty(tmp_path: Path) -> None:
     manifest = '[config]\nroots = ["vendor"]\n' + _asset("vendor/a.js", "MIT")
     _tree(tmp_path, manifest, "vendor/a.js", "vendor/b.js")
-    assert _action(tmp_path).returncode == 1
+    run = _action(tmp_path)
+    assert run.returncode == 1
+    assert "vendored-license-check: FAILED" in run.stderr
 
 
 def test_action_uses_the_manifest_input(tmp_path: Path) -> None:
     _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js")
     (tmp_path / "vendored-assets.toml").rename(tmp_path / "other.toml")
     assert _action(tmp_path, roots="vendor", manifest="other.toml").returncode == 0
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "readme-viewer.js",
+        "licensed-widget.js",
+        "license-checker.min.js",
+        "noticeboard.js",
+        "notice.js",
+        "OFLine.woff2",
+        "copying-helper.js",
+        "Readme.js",
+        "readme-viewer.html",
+        "notice-banner.htm",
+        "license-checker",
+        "copying-tool",
+        "readme_widget",
+        "README-fonts",
+        "OFL.WOFF2",
+        "README.JS",
+        "COPYING.lib",
+        "LICENSE.PY",
+        "README.SH",
+        "NOTICE.EXE",
+        "OFL.TTC",
+        "README.SCSS",
+        "LICENSE.WOFF2.TXT",
+        "README.tsx",
+        "OFL.ttc",
+        "LICENSE-MIT.PY",
+        "OFL-1.1.EXE",
+        "README-X.SH",
+        "LICENSE_A.DLL",
+        "LICENSE-MIT.TXT.EXE",
+    ],
+)
+def test_a_library_named_like_a_legal_file_still_needs_an_entry(
+    tmp_path: Path, name: str
+) -> None:
+    _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js", f"vendor/{name}")
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 1
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "LICENSE",
+        "LICENSE.txt",
+        "LICENSE-MIT",
+        "LICENSE-MIT.txt",
+        "license.md",
+        "LICENCE",
+        "COPYING",
+        "COPYING.LESSER",
+        "NOTICE",
+        "NOTICE.txt",
+        "OFL.txt",
+        "OFL-1.1.txt",
+        "README",
+        "README-FONTS",
+        "README.rst",
+        "README.markdown",
+        "LICENSE.pdf",
+        "LICENSE.rtf",
+        "LICENSE-APACHE-2.0",
+        "OFL-1.1",
+        "OFL.1.1",
+        "LICENSE.MIT",
+        "LICENSE-GPL-3.0+",
+    ],
+)
+def test_a_legal_or_readme_file_needs_no_entry(tmp_path: Path, name: str) -> None:
+    _tree(tmp_path, _asset("vendor/a.js", "MIT"), "vendor/a.js", f"vendor/{name}")
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 0
+
+
+def test_a_missing_manifest_is_a_configuration_error(tmp_path: Path, capsys) -> None:
+    (tmp_path / "vendor").mkdir()
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2
+    assert "vendored-assets.toml" in capsys.readouterr().err
+
+
+def test_a_manifest_that_is_not_toml_is_a_configuration_error(tmp_path: Path) -> None:
+    (tmp_path / "vendored-assets.toml").write_text("[[asset\n", encoding="utf-8")
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2
+
+
+def test_attributions_without_a_manifest_is_a_configuration_error(
+    tmp_path: Path,
+) -> None:
+    assert main(["--root-dir", str(tmp_path), "--attributions"]) == 2
+
+
+def test_a_manifest_that_is_not_utf8_is_a_configuration_error(tmp_path: Path) -> None:
+    (tmp_path / "vendored-assets.toml").write_bytes(b"\xff\xfe[config]\n")
+    assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2

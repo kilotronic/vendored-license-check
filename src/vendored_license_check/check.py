@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import re
 import sys
 import tomllib
 from dataclasses import dataclass, field
@@ -51,8 +52,50 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
 # Legal/attribution files that ship beside vendored assets — a font's OFL.txt, a
 # bundled LICENSE/NOTICE/COPYING, a README — are not themselves third-party
 # assets, so they need no manifest entry.
-_META_NAME_PREFIXES = ("LICENSE", "LICENCE", "COPYING", "NOTICE", "OFL", "README")
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
+# A legal or readme file: the word (any case); an optional qualifier, either upper case after
+# "-" or "_" (LICENSE-MIT, OFL-1.1, LICENSE-APACHE-2.0) or, after ".", a version or a licence
+# name (OFL.1.1, COPYING.LESSER, LICENSE.MIT), so an upper-case extension such as LICENSE.PY
+# is not one; and an optional document extension (LICENSE.txt, README.markdown, LICENSE.pdf).
+_META_NAME_RE = re.compile(
+    r"(?i:LICENSE|LICENCE|COPYING|NOTICE|OFL|README)"
+    r"(?:[-_][A-Z0-9][A-Z0-9+-]*(?:\.[0-9][0-9.]*\+?)*|\.(?:[0-9][0-9.]*|LESSER|MIT|APACHE|BSD|GPL|LGPL|MPL|ISC))?"
+    r"(?i:\.(?:txt|md|markdown|rst|pdf|rtf))?"
+)
+# Never a legal file, whatever the name: code, styles, fonts, images, pages.
+_ASSET_SUFFIXES = frozenset(
+    {
+        ".js",
+        ".mjs",
+        ".cjs",
+        ".ts",
+        ".css",
+        ".map",
+        ".json",
+        ".wasm",
+        ".html",
+        ".htm",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".otf",
+        ".eot",
+        ".svg",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".webp",
+        ".ico",
+        ".jsx",
+        ".tsx",
+        ".xhtml",
+        ".svgz",
+        ".scss",
+        ".less",
+        ".ttc",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -79,7 +122,9 @@ def _is_meta_file(path: Path) -> bool:
         return True
     if path.suffix in _SKIP_SUFFIXES:
         return True
-    return name.upper().startswith(_META_NAME_PREFIXES)
+    if path.suffix.lower() in _ASSET_SUFFIXES:
+        return False
+    return _META_NAME_RE.fullmatch(name) is not None
 
 
 def enumerate_vendored(root: Path, roots: list[str]) -> list[Path]:
@@ -256,10 +301,23 @@ def main(argv: list[str] | None = None) -> int:
             if Path(args.manifest).is_absolute()
             else root / args.manifest
         )
-        print(attributions_csv(manifest_path))
+        try:
+            print(attributions_csv(manifest_path))
+        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as err:
+            print(
+                f"vendored-license-check: cannot read the manifest: {err}",
+                file=sys.stderr,
+            )
+            return 2
         return 0
 
-    cfg = resolve_config(args)
+    try:
+        cfg = resolve_config(args)
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError) as err:
+        print(
+            f"vendored-license-check: cannot read the manifest: {err}", file=sys.stderr
+        )
+        return 2
     if not cfg.roots:
         print(
             "vendored-license-check: no vendored roots configured. Pass --root or "

@@ -58,7 +58,14 @@ url = "https://github.com/Outfitio/Outfit-Fonts"
 
 - A **glob with zero current matches is valid** (forward-declare a font family you
   haven't added yet).
-- Meta files are ignored automatically: dotfiles, `LICENSE*`, `README*`, `*.md`.
+- Meta files are ignored automatically: dotfiles, `*.md`, and legal or readme files. Those are
+  named `LICENSE`, `LICENCE`, `COPYING`, `NOTICE`, `OFL` or `README` (any case), optionally
+  with a qualifier (upper case after `-` or `_`, as in `LICENSE-MIT` or `OFL-1.1`; a version
+  or licence name after `.`, as in `COPYING.LESSER` or `LICENSE.MIT`) and a document
+  extension: `.txt`, `.markdown`, `.rst`, `.pdf` or `.rtf`.
+  Anything else needs an entry, including a library whose name merely starts with one of
+  those words (`readme-viewer.js`, `license-checker`, `notice-banner.html`) and a legal file
+  with a lower-case qualifier (`COPYING.lib`, `README-fonts`).
 - If `[config]` is omitted, pass `--root`/`--allow`/`--deny` on the CLI or via the
   Action inputs instead.
 
@@ -106,7 +113,8 @@ vendored-license-check --attributions       # print attribution CSV, no gating
 ```
 
 Configuration precedence is **CLI flag → manifest `[config]` → built-in default**.
-Exit codes: `0` pass, `1` policy violation, `2` misconfiguration.
+Exit codes: `0` pass, `1` policy violation, `2` misconfiguration (including a missing or
+unreadable manifest).
 
 ## Development
 

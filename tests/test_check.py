@@ -134,7 +134,7 @@ license = "OFL-1.1"
 def test_legal_and_doc_files_are_meta(tmp_path: Path) -> None:
     """LICENSE/README/COPYING/NOTICE, a font's OFL.txt, and *.md need no entry."""
     _vendored(tmp_path, "vendor/LICENSE-MIT")
-    _vendored(tmp_path, "vendor/README-fonts")
+    _vendored(tmp_path, "vendor/README-FONTS")
     _vendored(tmp_path, "vendor/OFL.txt")
     _vendored(tmp_path, "vendor/COPYING")
     _vendored(tmp_path, "vendor/NOTICE")
