@@ -192,6 +192,14 @@ def test_action_uses_the_manifest_input(tmp_path: Path) -> None:
         "OFL.WOFF2",
         "README.JS",
         "COPYING.lib",
+        "LICENSE.PY",
+        "README.SH",
+        "NOTICE.EXE",
+        "OFL.TTC",
+        "README.SCSS",
+        "LICENSE.WOFF2.TXT",
+        "README.tsx",
+        "OFL.ttc",
     ],
 )
 def test_a_library_named_like_a_legal_file_still_needs_an_entry(
@@ -224,6 +232,9 @@ def test_a_library_named_like_a_legal_file_still_needs_an_entry(
         "LICENSE.rtf",
         "LICENSE-APACHE-2.0",
         "OFL-1.1",
+        "OFL.1.1",
+        "COPYING.LESSER",
+        "LICENSE.MIT",
     ],
 )
 def test_a_legal_or_readme_file_needs_no_entry(tmp_path: Path, name: str) -> None:
@@ -242,7 +253,9 @@ def test_a_manifest_that_is_not_toml_is_a_configuration_error(tmp_path: Path) ->
     assert main(["--root-dir", str(tmp_path), "--root", "vendor"]) == 2
 
 
-def test_attributions_without_a_manifest_is_a_configuration_error(tmp_path: Path) -> None:
+def test_attributions_without_a_manifest_is_a_configuration_error(
+    tmp_path: Path,
+) -> None:
     assert main(["--root-dir", str(tmp_path), "--attributions"]) == 2
 
 

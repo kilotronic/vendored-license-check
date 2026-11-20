@@ -53,12 +53,13 @@ DEFAULT_ALLOWED_LICENSES: tuple[str, ...] = (
 # bundled LICENSE/NOTICE/COPYING, a README — are not themselves third-party
 # assets, so they need no manifest entry.
 _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
-# A legal or readme file: the word (any case), an optional upper-case qualifier after "-", "_"
-# or "." (LICENSE-MIT, COPYING.LESSER, OFL-1.1, LICENSE-APACHE-2.0), and an optional document
-# extension (LICENSE.txt, README.markdown, LICENSE.pdf).
+# A legal or readme file: the word (any case); an optional qualifier, either upper case after
+# "-" or "_" (LICENSE-MIT, OFL-1.1, LICENSE-APACHE-2.0) or, after ".", a version or a licence
+# name (OFL.1.1, COPYING.LESSER, LICENSE.MIT), so an upper-case extension such as LICENSE.PY
+# is not one; and an optional document extension (LICENSE.txt, README.markdown, LICENSE.pdf).
 _META_NAME_RE = re.compile(
     r"(?i:LICENSE|LICENCE|COPYING|NOTICE|OFL|README)"
-    r"(?:[-_.][A-Z0-9][A-Z0-9.+-]*)?"
+    r"(?:[-_][A-Z0-9][A-Z0-9.+-]*|\.(?:[0-9][0-9.]*|LESSER|MIT|APACHE|BSD|GPL|LGPL|MPL|ISC))?"
     r"(?i:\.(?:txt|md|markdown|rst|pdf|rtf))?"
 )
 # Never a legal file, whatever the name: code, styles, fonts, images, pages.
@@ -86,6 +87,13 @@ _ASSET_SUFFIXES = frozenset(
         ".gif",
         ".webp",
         ".ico",
+        ".jsx",
+        ".tsx",
+        ".xhtml",
+        ".svgz",
+        ".scss",
+        ".less",
+        ".ttc",
     }
 )
 

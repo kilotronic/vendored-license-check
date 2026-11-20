@@ -60,8 +60,9 @@ url = "https://github.com/Outfitio/Outfit-Fonts"
   haven't added yet).
 - Meta files are ignored automatically: dotfiles, `*.md`, and legal or readme files. Those are
   named `LICENSE`, `LICENCE`, `COPYING`, `NOTICE`, `OFL` or `README` (any case), optionally
-  with an upper-case qualifier after `-`, `_` or `.` (`LICENSE-MIT`, `COPYING.LESSER`,
-  `OFL-1.1`) and a document extension: `.txt`, `.markdown`, `.rst`, `.pdf` or `.rtf`.
+  with a qualifier (upper case after `-` or `_`, as in `LICENSE-MIT` or `OFL-1.1`; a version
+  or licence name after `.`, as in `COPYING.LESSER` or `LICENSE.MIT`) and a document
+  extension: `.txt`, `.markdown`, `.rst`, `.pdf` or `.rtf`.
   Anything else needs an entry, including a library whose name merely starts with one of
   those words (`readme-viewer.js`, `license-checker`, `notice-banner.html`) and a legal file
   with a lower-case qualifier (`COPYING.lib`, `README-fonts`).
