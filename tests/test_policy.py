@@ -239,6 +239,7 @@ def test_a_library_named_like_a_legal_file_still_needs_an_entry(
         "OFL-1.1",
         "OFL.1.1",
         "LICENSE.MIT",
+        "LICENSE-GPL-3.0+",
     ],
 )
 def test_a_legal_or_readme_file_needs_no_entry(tmp_path: Path, name: str) -> None:

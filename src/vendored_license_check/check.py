@@ -59,7 +59,7 @@ _SKIP_SUFFIXES = frozenset({".md", ".LICENSE"})
 # is not one; and an optional document extension (LICENSE.txt, README.markdown, LICENSE.pdf).
 _META_NAME_RE = re.compile(
     r"(?i:LICENSE|LICENCE|COPYING|NOTICE|OFL|README)"
-    r"(?:[-_][A-Z0-9][A-Z0-9+-]*(?:\.[0-9][0-9.]*)*|\.(?:[0-9][0-9.]*|LESSER|MIT|APACHE|BSD|GPL|LGPL|MPL|ISC))?"
+    r"(?:[-_][A-Z0-9][A-Z0-9+-]*(?:\.[0-9][0-9.]*\+?)*|\.(?:[0-9][0-9.]*|LESSER|MIT|APACHE|BSD|GPL|LGPL|MPL|ISC))?"
     r"(?i:\.(?:txt|md|markdown|rst|pdf|rtf))?"
 )
 # Never a legal file, whatever the name: code, styles, fonts, images, pages.
