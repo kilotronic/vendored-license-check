@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   # Refuse the organisation's private terms (the DATA_LEAK_DENYLIST secret) in this event's commits:
   # added lines, file paths, commit messages and authors.
@@ -36,7 +39,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: kilotronic/lint@50d58c6fc3916432a60d6caf5914d5bb83a60a16 # v1.1.0
+      - uses: kilotronic/lint@57c42f430af9a89607e32d1947714e2e594db6f3 # v1.2.0
 
   # Real authors on this event's commits, in the owner's domains, from kilotronic/git-identity.
   git-identity:
@@ -45,9 +48,10 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-      - uses: kilotronic/git-identity@5a7b91c3194870cf535ba8c37a6c93b19b5a933b # v2.3.1
+      - uses: kilotronic/git-identity@b0d54e809d81cabf61d357cbe519a9b9263b17cb # v2.4.0
         with:
           domains: ixid.net, kilotronic.com
+          commit-subject: true
 
   test:
     runs-on: ubuntu-latest
@@ -97,25 +101,44 @@ jobs:
             echo "::error::the undeclared file was not refused"; exit 1
           fi
 
+  # The format and lint bundle from .pre-commit-config.yaml (formatters, ruff, markdownlint, yamllint, ...),
+  # the same hooks a commit runs. The identity, secret and private-term hooks run as their own jobs.
+  prek:
+    name: Format and lint (prek)
+    runs-on: ubuntu-latest
+    env:
+      SKIP: git-identity,commit-subject,session-trailer,secret-scan,secret-scan-push,data-leak-check,data-leak-check-commit-msg,data-leak-check-pre-push
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: pipx run prek==0.5.11 run --all-files --show-diff-on-failure
+
   # Single non-matrix aggregator — this is the check to require in branch
   # protection. Requiring the matrix `test` job directly would fail: GitHub
   # renames it to `test (3.11)` etc., so the bare `test` context never reports.
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [test, dogfood-action, prek-hook, secret-scan, lint, git-identity, data-leak-check]
+    needs:
+      [
+        test,
+        dogfood-action,
+        prek-hook,
+        secret-scan,
+        lint,
+        git-identity,
+        data-leak-check,
+        prek,
+      ]
     if: always()
     steps:
+      # Every job in needs: is checked and must succeed, so a new job only has to be added there.
       - name: Verify required jobs succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
         run: |
-          if [ "${{ needs.test.result }}" != "success" ] \
-             || [ "${{ needs.secret-scan.result }}" != "success" ] \
-             || [ "${{ needs.lint.result }}" != "success" ] \
-             || [ "${{ needs.git-identity.result }}" != "success" ] \
-             || [ "${{ needs.dogfood-action.result }}" != "success" ] \
-             || [ "${{ needs.prek-hook.result }}" != "success" ] \
-             || [ "${{ needs.data-leak-check.result }}" != "success" ]; then
-            echo "A required job did not succeed (test=${{ needs.test.result }}, secret-scan=${{ needs.secret-scan.result }}, lint=${{ needs.lint.result }}, git-identity=${{ needs.git-identity.result }}, dogfood-action=${{ needs.dogfood-action.result }}, prek-hook=${{ needs.prek-hook.result }}, data-leak-check=${{ needs.data-leak-check.result }})"
-            exit 1
-          fi
-          echo "All required jobs succeeded."
+          echo "results: $RESULTS"
+          for r in $RESULTS; do
+            [[ "$r" = success ]] || exit 1
+          done
